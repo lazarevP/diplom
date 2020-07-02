@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    {% if request.user.is_authenticated %}
+        wallet - {{ request.user.wallet }}
+    {% endif %}
+    <h2>Seances for today</h2>
+    <a href="{% url 'main_page' %}?ordering=price">Order by price</a>
+    <a href="{% url 'main_page' %}?ordering=begin_time">Order by start time</a>
+{#    <form method="get" action="{% url 'main_page' %}?oredering">#}
+{#        {{ search_form.as_p }}#}
+{#        <button type="submit">Order</button>#}
+{#    </form>#}
+    <ul>
+        {% for seance in object_list %}
+            <li>movie - {{ seance.movie_info.movie_name}}, hall - {{ seance.hall.hall_name }}, price - {{ seance.price }},
+            beginning time - {{ seance.begin_time }}
+            </li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'tomorrow' %}">Tomorrow seances</a>
+
+
+{% endblock %}
