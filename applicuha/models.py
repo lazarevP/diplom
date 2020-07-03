@@ -44,9 +44,3 @@ class Seance(models.Model):
 class Ticket(models.Model):
     seance = models.ForeignKey(Seance, on_delete=models.CASCADE)
     cinema_user = models.ForeignKey(CinemaUser, on_delete=models.CASCADE)
-
-    @property
-    def calculator(self):
-        self.cinema_user.wallet = self.cinema_user.wallet - self.seance.price
-        return self.cinema_user.wallet
-

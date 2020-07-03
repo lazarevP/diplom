@@ -13,7 +13,7 @@ from django.views import View
 from django.views.generic import CreateView, ListView
 
 from applicuha.forms import CustomUserCreationForm, TicketForm
-from applicuha.models import CinemaUser, Seance, Ticket
+from applicuha.models import CinemaUser, Seance, Ticket, Hall
 
 
 class Registration(CreateView):
@@ -101,8 +101,12 @@ class TicketCreateView(LoginRequiredMixin, CreateView):
         super().post(*args, **kwargs)
         user = get_object_or_404(CinemaUser, pk=self.request.user.id)
         seance = get_object_or_404(Seance, pk=self.request.POST.get("seance_id"))
+        # pk = kwargs.get('pk')
+        # hall = get_object_or_404(Hall, pk=pk)
         user.wallet -= seance.price
         user.save()
+        # hall.places -= 1
+        # hall.save()
         return HttpResponseRedirect(self.request.META.get('HTTP_REFERER'))
 
     def form_valid(self, form):
