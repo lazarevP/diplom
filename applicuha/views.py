@@ -5,7 +5,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.db.models import QuerySet
 from django.http import HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 
 # Create your views here.
 from django.urls import reverse_lazy, reverse
@@ -51,12 +51,8 @@ class SeanceListView(ListView):
             return self.request.GET.get('ordering')
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        if self.queryset is not None:
-            queryset = self.queryset
-            if isinstance(queryset, QuerySet):
-                queryset = Seance.objects.filter(movie_info__beginning_date__lte=date.today(),
-                                                 movie_info__ending_date__gte=date.today())
+        queryset = Seance.objects.filter(movie_info__beginning_date__lte=date.today(),
+                                         movie_info__ending_date__gte=date.today())
         ordering = self.get_ordering()
         if ordering:
             if isinstance(ordering, str):
@@ -81,13 +77,8 @@ class TomorrowSeanceListView(ListView):
             return self.request.GET.get('ordering')
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        if self.queryset is not None:
-            queryset = self.queryset
-            if isinstance(queryset, QuerySet):
-                queryset = Seance.objects.filter(movie_info__beginning_date__lte=date.today() + timedelta(days=1),
-                                                 movie_info__ending_date__gte=date.today() + timedelta(days=1))
-
+        queryset = Seance.objects.filter(movie_info__beginning_date__lte=date.today() + timedelta(days=1),
+                                         movie_info__ending_date__gte=date.today() + timedelta(days=1))
         ordering = self.get_ordering()
         if ordering:
             if isinstance(ordering, str):
@@ -105,13 +96,14 @@ class TomorrowSeanceListView(ListView):
 class TicketCreateView(LoginRequiredMixin, CreateView):
     model = Ticket
     form_class = TicketForm
-    success_url = reverse_lazy('main_page')
-    template_name = 'main_page.html'
-    http_method_names = ['post', ]
 
     def post(self, *args, **kwargs):
         super().post(*args, **kwargs)
-        return HttpResponseRedirect(reverse_lazy('main_page'))
+        user = get_object_or_404(CinemaUser, pk=self.request.user.id)
+        seance = get_object_or_404(Seance, pk=self.request.POST.get("seance_id"))
+        user.wallet -= seance.price
+        user.save()
+        return HttpResponseRedirect(self.request.META.get('HTTP_REFERER'))
 
     def form_valid(self, form):
         self.object = form.save(commit=False)
@@ -129,4 +121,9 @@ class TicketsListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         queryset = Ticket.objects.filter(cinema_user=self.request.user)
         return queryset
+
+    # def get_context_data(self, *args, **kwargs):
+    #     context = super().get_context_data(*args, **kwargs)
+    #     context['money_spent'] = self.request.user.purchases
+    #     return context
 
