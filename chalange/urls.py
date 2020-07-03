@@ -16,7 +16,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from applicuha.views import SeanceListView, Login, Registration, Logout, TomorrowSeanceListView
+from applicuha.views import SeanceListView, Login, Registration, Logout, TomorrowSeanceListView, TicketCreateView, \
+    TicketsListView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,4 +26,6 @@ urlpatterns = [
     path('registration/', Registration.as_view(), name='registration'),
     path('logout/', Logout.as_view(), name='logout'),
     path('tomorrow/', TomorrowSeanceListView.as_view(), name='tomorrow'),
+    path('ticket/', TicketCreateView.as_view(), name='ticket'),
+    path('tickets/', TicketsListView.as_view(), name='tickets'),
  ]

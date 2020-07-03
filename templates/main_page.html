@@ -15,11 +15,24 @@
     <ul>
         {% for seance in object_list %}
             <li>movie - {{ seance.movie_info.movie_name}}, hall - {{ seance.hall.hall_name }}, price - {{ seance.price }},
-            beginning time - {{ seance.begin_time }}
+            beginning time - {{ seance.begin_time }}, free places - {{ seance.hall.places }}
+            {% if request.user.is_authenticated %}
+                    <form method="post" action="{% url 'ticket' %}">
+                        {% csrf_token %}
+                        {{ ticket_form.as_p }}
+                        <input type="hidden" name="seance_id" value={{ seance.id }}>
+                        <button type="submit" >Buy</button>
+                    </form>
+                {% endif %}
             </li>
         {% endfor %}
     </ul>
     <a href="{% url 'tomorrow' %}">Tomorrow seances</a>
+    <a href="{% url 'tickets' %}">Your bought tickets</a>
+
+    {% if request.user.is_superuser %}
+        <a href="/admin/">admin pages</a> for changing content.
+    {% endif %}
 
 
 {% endblock %}

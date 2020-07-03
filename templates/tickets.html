@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% if request.user.is_authenticated %}
+    wallet - {{ request.user.wallet }}
+{% endif %}
+
+    <ul>
+        {% for ticket in ticket_list %}
+            <li>movie - {{ ticket.seance.movie_info.movie_name }}, hall - {{ ticket.seance.hall.hall_name }},
+                price - {{ ticket.seance.price }}, beginning time - {{ ticket.seance.begin_time }}
+            </li>
+        {% endfor %}
+    </ul>
+
+{% endblock %}

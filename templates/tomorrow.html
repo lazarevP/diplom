@@ -1,2 +1,28 @@
 {% extends 'base.html' %}
 
+{% block content %}
+
+    {% if request.user.is_authenticated %}
+        wallet - {{ request.user.wallet }}
+    {% endif %}
+    <h2>Seances for tomorrow</h2>
+    <a href="{% url 'tomorrow' %}?ordering=price">Order by price</a>
+    <a href="{% url 'tomorrow' %}?ordering=begin_time">Order by start time</a>
+
+    <ul>
+        {% for seance in object_list %}
+            <li>movie - {{ seance.movie_info.movie_name}}, hall - {{ seance.hall.hall_name }}, price - {{ seance.price }},
+            beginning time - {{ seance.begin_time }}, free places - {{ seance.hall.places }}
+            {% if request.user.is_authenticated %}
+                    <form method="post" action="{% url 'ticket' %}">
+                        {% csrf_token %}
+                        {{ ticket_form.as_p }}
+                        <input type="hidden" name="seance_id" value={{ seance.id }}>
+                        <button type="submit" >Buy</button>
+                    </form>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+
+{% endblock %}

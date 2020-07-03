@@ -1,7 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
+from django.forms import ModelForm
 
-from applicuha.models import CinemaUser
+from applicuha.models import CinemaUser, Ticket
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -10,11 +11,7 @@ class CustomUserCreationForm(UserCreationForm):
         fields = UserCreationForm.Meta.fields
 
 
-# ORDER = (
-#     ('price', 'By price'),
-#     ('begin_time', 'By start time')
-# )
-#
-#
-# class OrderingForm(forms.Form):
-#     order = forms.ChoiceField(choices=ORDER)
+class TicketForm(ModelForm):
+    class Meta:
+        model = Ticket
+        fields = []

@@ -1,8 +1,9 @@
-from datetime import date
+from datetime import date, timedelta
 
 from django.contrib.auth import logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
+from django.db.models import QuerySet
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
@@ -11,8 +12,8 @@ from django.urls import reverse_lazy, reverse
 from django.views import View
 from django.views.generic import CreateView, ListView
 
-from applicuha.forms import CustomUserCreationForm
-from applicuha.models import CinemaUser, Seance
+from applicuha.forms import CustomUserCreationForm, TicketForm
+from applicuha.models import CinemaUser, Seance, Ticket
 
 
 class Registration(CreateView):
@@ -44,7 +45,6 @@ class SeanceListView(ListView):
     model = Seance
     template_name = 'main_page.html'
     queryset = Seance.objects.all()
-    paginate_by = 10
 
     def get_ordering(self):
         if self.request.GET.get('ordering'):
@@ -52,15 +52,81 @@ class SeanceListView(ListView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        if self.queryset is not None:
+            queryset = self.queryset
+            if isinstance(queryset, QuerySet):
+                queryset = Seance.objects.filter(movie_info__beginning_date__lte=date.today(),
+                                                 movie_info__ending_date__gte=date.today())
+        ordering = self.get_ordering()
+        if ordering:
+            if isinstance(ordering, str):
+                ordering = (ordering,)
+            queryset = queryset.order_by(*ordering)
+        return queryset
 
-    # def get_context_data(self, **kwargs):
-    #     context = super().get_context_data(**kwargs)
-    #     context.update(
-    #         {'search_form': OrderingForm, })
-    #     return context
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(
+            {'ticket_form': TicketForm, })
+        return context
 
 
 class TomorrowSeanceListView(ListView):
     model = Seance
     template_name = 'tomorrow.html'
     queryset = Seance.objects.all()
+
+    def get_ordering(self):
+        if self.request.GET.get('ordering'):
+            return self.request.GET.get('ordering')
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.queryset is not None:
+            queryset = self.queryset
+            if isinstance(queryset, QuerySet):
+                queryset = Seance.objects.filter(movie_info__beginning_date__lte=date.today() + timedelta(days=1),
+                                                 movie_info__ending_date__gte=date.today() + timedelta(days=1))
+
+        ordering = self.get_ordering()
+        if ordering:
+            if isinstance(ordering, str):
+                ordering = (ordering,)
+            queryset = queryset.order_by(*ordering)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(
+            {'ticket_form': TicketForm, })
+        return context
+
+
+class TicketCreateView(LoginRequiredMixin, CreateView):
+    model = Ticket
+    form_class = TicketForm
+    success_url = reverse_lazy('main_page')
+    template_name = 'main_page.html'
+    http_method_names = ['post', ]
+
+    def post(self, *args, **kwargs):
+        super().post(*args, **kwargs)
+        return HttpResponseRedirect(reverse_lazy('main_page'))
+
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.cinema_user = self.request.user
+        seance = Seance.objects.get(id=self.request.POST.get("seance_id"))
+        self.object.seance = seance
+        self.object.save()
+
+
+class TicketsListView(LoginRequiredMixin, ListView):
+    model = Ticket
+    template_name = 'tickets.html'
+    queryset = Ticket.objects.all()
+
+    def get_queryset(self):
+        queryset = Ticket.objects.filter(cinema_user=self.request.user)
+        return queryset
+

@@ -37,8 +37,8 @@ class Seance(models.Model):
     movie_info = models.ForeignKey(MovieInfo, on_delete=models.CASCADE)
     hall = models.ForeignKey(Hall, on_delete=models.CASCADE)
     price = models.DecimalField(decimal_places=2, max_digits=20)
-    begin_time = models.DateTimeField()
-    end_time = models.DateTimeField()
+    begin_time = models.TimeField()
+    end_time = models.TimeField()
 
 
 class Ticket(models.Model):
