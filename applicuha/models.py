@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
@@ -8,15 +6,17 @@ from django.db import models
 
 class CinemaUser(AbstractUser):
     wallet = models.DecimalField(decimal_places=2, max_digits=20, null=True, blank=True)
+    wasted_money = models.DecimalField(decimal_places=2, max_digits=20, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.id:
             self.wallet = 1000
+            self.wasted_money = 0
         super().save(*args, **kwargs)
 
 
 class Hall(models.Model):
-    hall_name = models.CharField(max_length=20)
+    hall_name = models.CharField(max_length=20, unique=True)
     places = models.PositiveIntegerField()
 
     def __str__(self):
@@ -35,7 +35,7 @@ class MovieInfo(models.Model):
 
 class Seance(models.Model):
     movie_info = models.ForeignKey(MovieInfo, on_delete=models.CASCADE)
-    hall = models.ForeignKey(Hall, on_delete=models.CASCADE)
+    hall = models.OneToOneField(Hall, on_delete=models.CASCADE)
     price = models.DecimalField(decimal_places=2, max_digits=20)
     begin_time = models.TimeField()
     end_time = models.TimeField()

@@ -33,7 +33,7 @@ class SeanceSerializer(serializers.ModelSerializer):
 class TicketSerializer(serializers.ModelSerializer):
     seance = SeanceSerializer()
     cinema_user = CinemaUserSerializer()
-    
+
     class Meta:
         model = Ticket
         fields = ['seance', 'cinema_user']

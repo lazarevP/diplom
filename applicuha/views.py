@@ -1,5 +1,6 @@
 from datetime import date, timedelta
 
+from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
@@ -101,12 +102,17 @@ class TicketCreateView(LoginRequiredMixin, CreateView):
         super().post(*args, **kwargs)
         user = get_object_or_404(CinemaUser, pk=self.request.user.id)
         seance = get_object_or_404(Seance, pk=self.request.POST.get("seance_id"))
-        # pk = kwargs.get('pk')
-        # hall = get_object_or_404(Hall, pk=pk)
         user.wallet -= seance.price
-        user.save()
-        # hall.places -= 1
-        # hall.save()
+        seance.hall.places -= 1
+        user.wasted_money += seance.price
+        if user.wallet < 0 or seance.hall.places < 0:
+            if user.wallet < 0:
+                messages_warning1(self.request)
+            else:
+                messages_warning2(self.request)
+        else:
+            user.save()
+            seance.hall.save()
         return HttpResponseRedirect(self.request.META.get('HTTP_REFERER'))
 
     def form_valid(self, form):
@@ -115,6 +121,14 @@ class TicketCreateView(LoginRequiredMixin, CreateView):
         seance = Seance.objects.get(id=self.request.POST.get("seance_id"))
         self.object.seance = seance
         self.object.save()
+
+
+def messages_warning1(request):
+    return messages.warning(request, 'You don\'t have enough money to buy the ticket')
+
+
+def messages_warning2(request):
+    return messages.warning(request, 'There are no empty places')
 
 
 class TicketsListView(LoginRequiredMixin, ListView):

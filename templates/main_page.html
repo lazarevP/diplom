@@ -4,6 +4,14 @@
 
     {% if request.user.is_authenticated %}
         wallet - {{ request.user.wallet }}
+        <a href="{% url 'tickets' %}">Your bought tickets</a>
+    {% endif %}
+    {% if messages %}
+    <ul class="messages">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+    </ul>
     {% endif %}
     <h2>Seances for today</h2>
     <a href="{% url 'main_page' %}?ordering=price">Order by price</a>
@@ -28,7 +36,6 @@
         {% endfor %}
     </ul>
     <a href="{% url 'tomorrow' %}">Tomorrow seances</a>
-    <a href="{% url 'tickets' %}">Your bought tickets</a>
 
     {% if request.user.is_superuser %}
         <a href="/admin/">admin pages</a> for changing content.
